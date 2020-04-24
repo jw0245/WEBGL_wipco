@@ -1,0 +1,276 @@
+<html>
+<head>
+<title>WIPCO</title>
+
+<style>
+ body { margin: 0; }
+ canvas {width: 100%; height: 100%; };
+</style>
+
+</head>
+
+<body>
+    
+<script src="js/three.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/FBXLoader.js"></script>
+<script src="js/inflate.min.js"></script>
+<script src="js/Sky.js"></script>
+<script src="js/dat.gui.min.js"></script>
+
+<script>
+        
+ var width = window.innerWidth;
+ var height = window.innerHeight;
+
+ var scene = new THREE.Scene( );
+ var camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 10000);
+ 
+ camera.position.x = -200;
+ camera.position.y = 150;
+ camera.position.z = 0;
+ camera.lookAt(scene.positon);
+ camera.getEffectiveFOV();
+ var renderer = new THREE.WebGLRenderer();
+ renderer.setSize(width, height);
+ document.body.appendChild( renderer.domElement );
+    
+ renderer.shadowMapEnabled = true;
+ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+ renderer.gammaInput = true;
+ renderer.gammaOutput = true;  
+  
+
+// 태양  
+ var directlight = new THREE.DirectionalLight(0xf0f0f0, 1.8,3000);
+ directlight.shadow.camera.near = 10;    
+ directlight.shadow.camera.far = 2000;
+ var shadowBlur = 40;
+ directlight.shadowCameraLeft = -shadowBlur;
+ directlight.shadowCameraRight = shadowBlur;
+ directlight.shadowCameraTop = shadowBlur;
+ directlight.shadowCameraBottom = -shadowBlur;
+ directlight.shadow.mapSize = new THREE.Vector2(1024,1024);
+ scene.add(directlight);
+ directlight.castShadow = true;
+//light
+ var ambientLight = new THREE.AmbientLight( 0x282828, -0.5 );    
+    
+
+ 
+// 파노라마 스카이박스
+    
+    /*
+ var skygeometry = new THREE.SphereGeometry(2500, 32, 32);
+ var skymaterial = new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("test/DSC_5039 Panorama.jpg"), side: THREE.BackSide});
+ var skymesh = new THREE.Mesh(skygeometry, skymaterial); 
+ scene.add(skymesh);
+    */
+    /*
+//Fps
+        
+ (function(){var script=document.createElement('script');script.onload=function(){var stats=new  Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
+*/
+    
+//Camera controler set 
+
+ var controls = new THREE.OrbitControls( camera, renderer.domElement );
+ controls.enablePan = true;
+ controls.rotateSpeed = 0.7;
+ controls.zoomSpeed = 2;
+ controls.minDistance = 50;
+ controls.maxDistance = 200;
+ controls.maxPolarAngle = Math.PI/2;
+ controls. enableKeys = true;
+ controls.keys = {
+	LEFT: 65, //left arrow
+	UP: 87, // up arrow
+	RIGHT: 68, // right arrow
+	BOTTOM: 83 // down arrow
+};
+controls.keyPanSpeed = 15.0;
+    
+ //카메라기준 페닝으로 변경 
+controls.screenSpacePanning = true;
+    
+
+
+//3차원 좌표    
+var axes = new THREE.AxesHelper(1000);
+                             // 길이
+scene.add(axes);
+
+var grideHelper = new THREE.GridHelper( 2000,100 );
+
+scene.add(grideHelper);
+
+    
+//Window resize
+ window.addEventListener('resize', function()
+{   var width = window.innerWidth;
+    var height = window.innerHeight;
+    renderer.setSize(width, height);
+    camera.aspect = width / height;
+	camera.updateProjectionMatrix();
+	
+});    
+    
+
+//loading box
+    var loadingMaterials = 
+    [
+        new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('images/Loading.png'), side: THREE.DoubleSide}), //+x
+        new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('images/Loading.png'), side: THREE.DoubleSide}), //-x
+        new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('images/BlackLoading.png'), side: THREE.DoubleSide}), //+y
+        new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('images/BlackLoading.png'), side: THREE.DoubleSide}), //-y
+        new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('images/Loading.png'), side: THREE.DoubleSide}), //=z
+        new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('images/Loading.png'), side: THREE.DoubleSide}) //-Z  
+    ];
+
+    var loading = new THREE.Mesh( new THREE.BoxGeometry(80, 80, 80 ), loadingMaterials);
+    loading.position.set(0,0,0);
+    loading.rotation.z = 0;
+    
+//sucutai_Model
+    
+var FBXloader = new THREE.FBXLoader();
+  function FBX(){
+    FBXloader.load( 'WatMahatahat_Test/WatMahatahat_Test.fbx', function ( object ) {
+       
+    
+        object.scale.set(0.03, 0.03, 0.03);
+        object.rotation.y = -190.059;
+        object.rotation.x = 0;
+        object.position.set(-235,0.5,3);
+        
+        
+        object.traverse( function(child) {
+        if (child.isMesh) {
+      
+        child.castShadow = true;
+        child.receiveShadow = true; 
+            
+        let wireframe = gui.add( child.material, 'wireframe' );
+        wireframe.onChange(function(){ });
+      
+  }
+  });  
+  
+        scene.add(object); 
+        scene.add(floor);
+        scene.add(ambientLight);
+        scene.remove(loading);
+    },
+	// called when loading is in progresses
+	function ( xhr ) {
+        scene.add(loading);
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        scene.add(loading);
+        
+	},
+	// called when loading has errors
+	function ( error ) {
+    
+		console.log( 'FBXLoader failed' );
+        alert('FBXLoader Error');
+	});
+}
+    
+FBX();
+
+
+// 바닥
+ var floor = new THREE.Mesh(new THREE.CubeGeometry(120,1,120), new THREE.MeshStandardMaterial({ map : new THREE.TextureLoader().load('images/darkconcrete.png',function ( texture ) {
+						//바닥 x,y축를 기준으로 텍스쳐 10누기
+						floor.material.map.repeat.x= 3;
+						floor.material.map.repeat.y= 3;
+						floor.material.map.wrapS=THREE.RepeatWrapping;
+						floor.material.map.wrapT=THREE.RepeatWrapping; }), side: THREE.DoubleSide }));
+    floor.position.set(0,0,0);
+    floor.receiveShadow = true;
+    
+    
+//GUI
+ 
+
+   
+
+    
+//SKY
+    
+ var sky = new THREE.Sky();
+
+ sky.material.uniforms['turbidity'].value=10;
+ sky.material.uniforms['rayleigh'].value=2;
+ sky.material.uniforms['luminance'].value=1;
+ sky.material.uniforms['mieCoefficient'].value=0.005;
+ sky.material.uniforms['mieDirectionalG'].value=0.8;
+ 
+
+ var cubeCamera = new THREE.CubeCamera( 0.1, 1, 512 );
+ scene.background = cubeCamera.renderTarget;
+    
+ var gui = new dat.GUI();
+ var parm = {a: 'TIME', b: 330};
+ var xPath = -330;
+ var yPath = 670;    
+ gui.add(parm, 'a').name('Name');     
+  
+ var T = gui.addFolder('TIME');    
+ T.add(parm,'b').min(0).max(1000).step(20).name('TIME').onChange(function(){
+     xPath = -(parm.b);
+     yPath = -(parm.b) + 1000;
+ });
+     
+ 
+ 
+ directlight.position.x = xPath;
+ directlight.position.y = yPath;
+ directlight.position.z = 75;
+ sky.material.uniforms['sunPosition'].value = directlight.position.copy( directlight.position);    
+   
+ cubeCamera.update( renderer, sky );
+
+ /*
+ //directional light helper
+var helper = new THREE.CameraHelper( directlight.shadow.camera );
+scene.add( helper );
+*/
+//logic
+ var update = function( )
+{
+
+    loading.rotation.x -=0.01;
+    loading.rotation.y -=0.015;
+    loading.rotation.z -=0.01;
+};
+ var render = function( )
+{
+    
+ directlight.position.x = xPath;
+ directlight.position.y = yPath; 
+ sky.material.uniforms['sunPosition'].value = directlight.position.copy( directlight.position);    
+ cubeCamera.update( renderer, sky );    
+ var time = Date.now()*0.000075
+ renderer.render( scene, camera );
+ 
+};
+
+
+// run loop (update, render, repeat)
+
+var loop = function( )
+{
+    
+ controls.update();
+ requestAnimationFrame( loop );
+ update();
+ render();
+ 
+};
+
+loop();
+    
+</script>
+</body>
+</html>

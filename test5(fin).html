@@ -1,0 +1,162 @@
+<html>
+<head>
+<title>Panorama+BOXModel</title>
+
+<style>
+ body { margin: 0; }
+ canvas {width: 100%; height: 100%; };
+</style>
+
+</head>
+
+<body>
+    
+<script src="js/three.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/OBJLoader.js"></script>
+<script src="js/PointerLockControls.js"></script>
+
+<script>
+        
+var width = window.innerWidth;
+var height = window.innerHeight;
+
+var scene = new THREE.Scene( );
+var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000000);
+
+camera.position.x = 0;
+camera.position.y = 100;
+camera.position.z = 10;
+ 
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize(width, height);
+document.body.appendChild( renderer.domElement );
+    
+renderer.shadowMap.enabled = true;    
+
+// 태양
+var directlight = new THREE.SpotLight(0xFFFFFF, 1.0);
+directlight.position.set(-1000,500,100);
+directlight.castShadow = true;
+directlight.shadow.mapSize = new THREE.Vector2(1024,1024);
+scene.add(directlight);
+directlight.castShdow = true;
+    
+
+//light
+var ambientLight = new THREE.AmbientLight( 0xFFFFFF, 0.5);        
+scene.add(ambientLight);    
+
+
+
+var controls = new THREE.OrbitControls( camera, renderer.domElement );
+controls.enableZoom = true;
+controls.enablePan = true;
+controls.enableDamping = true;
+controls.rotateSpeed = 0.25;
+controls. enableKeys = true;
+ controls.keys = {
+	LEFT: 65, //left arrow
+	UP: 87, // up arrow
+	RIGHT: 68, // right arrow
+	BOTTOM: 83 // down arrow
+};
+controls.keyPanSpeed = 15.0;
+    
+ //카메라기준 페닝으로 변경 
+controls.screenSpacePanning = true;
+//3차원 좌표    
+var axes = new THREE.AxesHelper(1000);
+                             // 길이
+scene.add(axes);
+
+var grideHelper = new THREE.GridHelper( 2000,100 );
+
+scene.add(grideHelper);
+    
+//Window resize
+window.addEventListener('resize', function()
+{   var width = window.innerWidth;
+    var height = window.innerHeight;
+    renderer.setSize(width, height);
+    camera.aspect = width / height;
+	camera.updateProjectionMatrix();
+	
+});    
+
+//texure
+    
+   /*
+    function TextureLoader(){
+        loader.load('Wooden Crate/Wooden Crate_Crate_BaseColor.png',function(texture){
+            
+        });
+    }
+    */
+var texture = new THREE.TextureLoader().load('Wooden Crate/Wooden Crate_Crate_BaseColor.png');    
+var material = new THREE.MeshPhongMaterial({map: texture, side: THREE.DoubleSide});    
+//OBJLoader    
+var loader = new THREE.OBJLoader(); 
+
+    loader.load('Wooden Crate/Wooden Crate.obj',function ( object ) {
+
+		
+        object.position.set(900,-145,0);
+        object.scale.set(75,75,75);
+        scene.add( object );
+        alert('모델이 화면에 도출됨');
+        object.castShadow = true;
+        
+        object.traverse( function ( child ) {
+        if ( child.isMesh ) 
+           child.material.map = texture;
+           
+					} );
+	},
+	// called when loading is in progresses
+	function ( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+	},
+	// called when loading has errors
+	function ( error ) {
+
+		console.log( 'OBJLoader 오류로 파일 호출 실패' );
+        alert('오브젝트 로드 중 오류가 발생');
+    }
+    );
+  camera.lookAt(new THREE.Vector3( 900, 0, 0 ));
+
+//logic
+var update = function( )
+{
+
+
+
+};
+var render = function( )
+{
+ controls.update();
+ renderer.render( scene, camera );
+ 
+};
+
+
+// run loop (update, render, repeat)
+
+var loop = function( )
+{
+ 
+ requestAnimationFrame( loop );
+ update();
+ render();
+ 
+};
+
+loop();
+
+    </script>
+</body>
+
+</html>

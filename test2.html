@@ -1,0 +1,218 @@
+<html>
+<head>
+<title>PLY 3D Model</title>
+
+<style>
+ body { margin: 0; }
+ canvas {width: 100%; height: 100%; };
+</style>
+
+</head>
+
+<body>
+
+<script src="https://threejs.org/build/three.js"></script>
+<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+<script src="js/OBJLoader.js"></script>
+<script src="js/MTLLoader.js"></script>
+<script src="js/PLYLoader.js"></script>    
+<script>    
+var width = window.innerWidth;
+var height = window.innerHeight;
+
+var scene = new THREE.Scene( );
+var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100000);
+var objmodel;
+camera.position.x = 0;
+camera.position.y = 0;
+camera.position.z = 150;
+
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize(width, height);
+document.body.appendChild( renderer.domElement );
+
+//Window resize
+window.addEventListener('resize', function()
+{   var width = window.innerWidth;
+    var height = window.innerHeight;
+    renderer.setSize(width, height);
+    camera.aspect = width / height;
+	camera.updateProjectionMatrix();
+	
+});
+camera.lookAt(scene.position);
+
+//OrbitControls
+controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+//3차원 좌표    
+var axes = new THREE.AxesHelper(10000);
+                             // 길이
+scene.add(axes);
+
+var grideHelper = new THREE.GridHelper( 20000,1000 );
+    
+/*
+// create the shape
+var geometry = new THREE.CubeGeometry( 1, 1, 1 ); 
+
+
+//meterial colour image texture 정의
+var material = new THREE.MeshBasicMaterial( { color: 0xFFEAEF, wireframe: true } );
+var cube = new THREE.Mesh( geometry, material );
+scene.add( cube );
+*/
+//PLYLoader
+var mesh ;
+var loader = new THREE.PLYLoader();    
+    
+     loader.load
+     ('test/01 KC_Pagoda_1.ply',
+    function ( object ) {
+         
+           
+         
+         var material = new THREE.MeshNormalMaterial({map : THREE.ImageUtils.loadTexture('images/stone.jpg')});
+         mesh = new THREE.Mesh(object,material);
+         mesh.scale.set(0.5,0.5,0.5);
+         scene.add(mesh);
+		alert("모델 로드 완료");
+
+	},
+	// called when loading is in progresses
+	function ( xhr ) {
+         
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+	},
+	// called when loading has errors
+	function ( error ) {
+
+		console.log( 'PLYLoader 오류로 파일 호출 실패' );
+        alert('PLYLoader 로드 중 오류가 발생');
+	}
+    );
+
+
+/*
+//OBJLoader    
+var loader = new THREE.OBJLoader();    
+function loadOBJLoader(materials)
+{
+    
+loader.setMaterials(materials);
+
+     loader.load
+     (
+    'test/01_KC_Pagoda_1.obj',
+    function ( object ) {
+
+		scene.add( object );
+        object.position.x = 0;
+        object.position.y = 0;
+        object.position.z = 0;
+        object.scale.set(100,100,100);
+       
+
+	},
+	// called when loading is in progresses
+	function ( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+	},
+	// called when loading has errors
+	function ( error ) {
+
+		console.log( 'OBJLoader 오류로 파일 호출 실패' );
+        alert('MTLLoader 로드 중 오류가 발생');
+	}
+    );
+}
+
+loadOBJLoader();
+*/
+//MTLLoader
+/*
+
+var mtlLoader = new THREE.MTLLoader();    
+
+function loadMTLLoader() {
+    
+
+    mtlLoader.load
+    ('test/01_KC_Pagoda_1.mtl',
+        function (materials) {
+        
+
+    materials.preload();
+
+   loadPLYLoader(materials);
+    }, function (xhr) {
+
+    console.log('MTLLoader: ', xhr.loaded / xhr.total * 100, '% loaded');
+             }, function (error) {
+
+     console.error('MTLLoader 로드 중 오류 발생', error);
+     alert('MTLLoader 로드 중 오류가 발생');
+            });
+}    
+
+    
+loadMTLLoader();
+*/
+
+
+    
+
+     
+// 큐브 스카이박스
+var skyboxgeometry = new THREE.CubeGeometry(10000, 10000, 10000);
+var skyboxMaterials =
+    [
+    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/elyvisions/rainbow_ft.png"), side: THREE.DoubleSide}),
+    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/elyvisions/rainbow_bk.png"), side: THREE.DoubleSide}),
+    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/elyvisions/rainbow_up.png"), side: THREE.DoubleSide}), 
+    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/elyvisions/rainbow_dn.png"), side: THREE.DoubleSide}),
+    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/elyvisions/rainbow_rt.png"), side: THREE.DoubleSide}),
+    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/elyvisions/rainbow_lf.png"), side: THREE.DoubleSide})
+    ];
+ 
+var skybox = new THREE.Mesh( skyboxgeometry, skyboxMaterials );
+
+scene.add(skybox);
+    
+    
+//light
+var ambientLight = new THREE.AmbientLight( 0xFFFFFF, 5.0);        
+scene.add(ambientLight);
+//logic
+var update = function( )
+{
+
+
+
+};
+var render = function( )
+{
+ renderer.render( scene, camera );
+};
+
+
+// run loop (update, render, repeat)
+
+var loop = function( )
+{
+
+ requestAnimationFrame( loop );
+ update();
+ render();
+ 
+};
+
+loop();
+
+    </script>
+</body>
+
+</html>

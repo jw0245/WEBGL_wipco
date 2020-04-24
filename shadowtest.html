@@ -1,0 +1,309 @@
+<html>
+<head>
+<title>shadowtest</title>
+
+<style>
+ body { margin: 0; }
+ canvas {width: 100%; height: 100%; };
+</style>
+
+</head>
+
+<body>
+    
+<script src="js/three.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/OBJLoader.js"></script>
+<script src="js/MTLLoader.js"></script>
+<script src="js/PointerLockControls.js"></script>
+<script src="js/FBXLoader.js"></script>
+<script src="js/inflate.min.js"></script>
+<script src="js/Sky.js"></script>
+<script src="js/Water.js"></script>
+<script src="js/TrackballControls.js"></script>
+
+<script>
+        
+var width = window.innerWidth;
+var height = window.innerHeight;
+
+var scene = new THREE.Scene( );
+var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000000);
+
+camera.position.x = -600;
+camera.position.y = 0;
+camera.position.z = 0;
+ 
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize(width, height);
+document.body.appendChild( renderer.domElement );
+    
+renderer.shadowMapEnabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.gammaInput = true;
+renderer.gammaOutput = true;    
+
+// 태양  
+var directlight = new THREE.SpotLight(0xFAFFAF, 0, 10000);
+directlight.castShadow = true;
+directlight.position.set(-700, 1000 , 0 );
+directlight.shadow.mapSize = new THREE.Vector2(1024,1024);
+var shadowBlur=10;
+directlight.shadowCameraLeft=-shadowBlur;
+directlight.shadowCameraRight=shadowBlur;
+directlight.shadowCameraTop=shadowBlur;
+directlight.shadowCameraBottom=-shadowBlur;
+scene.add(directlight);
+
+//light
+var ambientLight = new THREE.AmbientLight( 0x808080,0.1 );    
+scene.add(ambientLight);    
+    
+/*    
+// 파노라마 스카이박스
+var skygeometry = new THREE.SphereGeometry(1000, 32, 32);
+var skymaterial = new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("test/DSC_5039 Panorama.jpg"), side: THREE.BackSide});
+var skymesh = new THREE.Mesh(skygeometry, skymaterial); 
+scene.add(skymesh);
+*/    
+
+//orbitcontrols
+    
+var controls = new THREE.OrbitControls( camera, renderer.domElement );
+				controls.enableZoom = true;
+                controls. enableKeys = true;
+    controls.keys = {
+	LEFT: 65, //left arrow
+	UP: 87, // up arrow
+	RIGHT: 68, // right arrow
+	BOTTOM: 83 // down arrow
+};
+    //카메라기준 페닝으로 변경 
+controls.screenSpacePanning = true;
+
+    
+
+//3차원 좌표    
+var axes = new THREE.AxesHelper(1000);
+                             // 길이
+scene.add(axes);
+
+var grideHelper = new THREE.GridHelper( 2000,100 );
+
+scene.add(grideHelper);
+  
+    
+//Window resize
+window.addEventListener('resize', function()
+{   var width = window.innerWidth;
+    var height = window.innerHeight;
+    renderer.setSize(width, height);
+    camera.aspect = width / height;
+	camera.updateProjectionMatrix();
+	
+});    
+
+
+//FBXModel
+
+var FBXloader = new THREE.FBXLoader();
+    FBXloader.load( 'test1/Lee_Test_001.fbx', function ( object ) {
+       
+    
+        object.scale.set(0.2, 0.2, 0.2);
+        object.rotation.y = -190;
+        object.rotation.z = 0;
+        object.position.set(300,10,300);
+        
+        object.traverse( function(child) {
+        if (child.isMesh) {
+      
+        child.castShadow = true;
+        child.receiveShadow = true; 
+      
+  }
+  });  
+  
+        scene.add(object); 
+    });
+  
+ 
+    /*
+var FBXloader = new THREE.FBXLoader();
+    FBXloader.load( './Test_Box/Test_Box.fbx', function ( object ) {
+       
+        
+        
+        object.scale.set(0.5, 0.5, 0.5);
+        object.position.set(1,1,1);
+        object.traverse( function(child) {
+        if (child.isMesh) {
+        child.material = new THREE.MeshLambertMaterial({color : 0x8F8F8F })
+        child.castShadow = true;
+        child.receiveShadow = true; 
+        }});
+      
+        
+  
+        scene.add(object); 
+    });
+  */
+//shadow example
+    
+    var cubegeometry = new THREE.CubeGeometry(10,10,10);
+    var cubematerial = new THREE.MeshLambertMaterial({map : new THREE.TextureLoader().load('./images/stone.jpg'), side : THREE.DoubleSide });
+    var cube = new THREE.Mesh(cubegeometry,cubematerial);
+    cube.position.set(-500,100,200);
+    scene.add(cube);
+    cube.castShadow = true;
+var floor;
+floor = new THREE.Mesh(
+	new THREE.BoxGeometry(100, 0.1, 100), 
+	new THREE.MeshStandardMaterial({color: 0x808080})
+);
+scene.add(floor);
+floor.position.set(-500,90,200);
+floor.receiveShadow = true;    
+floor.castShadow= true;
+    
+//Fbx shadow
+    var fbxfloor = new THREE.Mesh(
+	new THREE.BoxGeometry(3000, 0.1, 3000), 
+	new THREE.MeshStandardMaterial({color: 0xEEDAEE})
+);
+scene.add(fbxfloor);
+fbxfloor.position.set(300,0,0);
+fbxfloor.receiveShadow = true; 
+fbxfloor.castShadow = true;
+
+//sun location
+var sun = new THREE.Mesh(new THREE.SphereGeometry(20,32,32), new THREE.MeshBasicMaterial({color : 0xFFFFFF}));
+                    
+sun.position.set(-700,1000,0);
+scene.add(sun);
+    
+//testbox
+ 
+
+var Unit = new THREE.Mesh(new THREE.BoxGeometry(10,10,10), new THREE.MeshBasicMaterial({color : 0xFFAA0D}));
+    Unit.position.set(-350,50,0);
+    Unit.castShadow = true;
+scene.add(Unit);
+
+    
+//OBJ 석탑
+//OBJLoader    
+var loader = new THREE.OBJLoader();    
+
+function loadOBJLoader(materials){
+    
+    loader.setMaterials(materials);
+    loader.load(
+    './obj/KC_Model_sample.obj',
+    function ( object ) {
+        
+        object.position.set(350,-70,-500);
+        object.scale.set(60,60,60);
+        object.rotation.x = 180.65;
+        object.rotation.z = 0.25;
+        
+         
+        object.traverse(function(child) {
+        if (child.isMesh) {
+        child.receiveShadow = true;    
+        child.castShadow = true;
+        
+      
+        }});
+        
+        
+       
+        scene.add( object );
+        alert('모델이 화면에 도출됨');
+       
+
+	},
+	// called when loading is in progresses
+	function ( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+	},
+	// called when loading has errors
+	function ( error ) {
+
+		console.log( 'OBJLoader 오류로 파일 호출 실패' );
+        alert('OBJLoader 로드 중 오류가 발생');
+	}
+    );
+    }
+    
+//MTLLoader
+
+
+var mtlLoader = new THREE.MTLLoader();    
+
+function loadMTLLoader() {
+    
+
+    mtlLoader.load
+    ('./obj/KC_Model_sample.mtl',
+        function (materials) {
+        
+
+    materials.preload();
+
+    loadOBJLoader(materials);
+    }, function (xhr) {
+
+    console.log('MTLLoader: ', xhr.loaded / xhr.total * 100, '% loaded');
+             }, function (error) {
+
+     console.error('MTLLoader 로드 중 오류 발생', error);
+     alert('MTLLoader 로드 중 오류가 발생');
+            });
+}
+    
+loadMTLLoader();
+
+    
+//그림자 example2
+    var box2 = new THREE.Mesh(new THREE.CubeGeometry(30,30,30), new THREE.MeshStandardMaterial({color : 0x0F0FFF}));
+    box2.castShadow = true ;
+    scene.add(box2);
+    box2.position.set(150,500,-430);
+
+//logic
+var update = function( )
+{
+
+};
+var render = function( )
+{
+    /*
+ var time = Date.now()*0.000125
+ directlight.position.y = Math.cos( time ) * 300 + 500;
+ sun.position.y = Math.cos(time) * 300 + 500;
+ */
+ renderer.render( scene, camera );
+ 
+};
+
+
+// run loop (update, render, repeat)
+
+var loop = function( )
+{
+ controls.update();
+ requestAnimationFrame( loop );
+ update();
+ render();
+ 
+};
+
+loop();
+
+    </script>
+</body>
+
+</html>

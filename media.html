@@ -1,0 +1,176 @@
+<html>
+<head>
+<title>youtube test</title>
+
+<style>
+ body { margin: 0; 
+     background-color:#808080
+    }
+    #blocker {
+				position: absolute;
+				top: 0;
+				left: 0;
+				bottom: 0;
+				right: 0;
+			}
+</style>
+
+</head>
+
+<body>
+<script src="js/three.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/FBXLoader.js"></script>
+<script src="js/inflate.min.js"></script>
+<script src="js/Sky.js"></script>
+<script src="js/CSS3DRenderer.js"></script>
+
+    <div id="container"></div>
+    <div id="blocker"></div>
+    
+
+<script>
+    
+ var width = window.innerWidth;
+ var height = window.innerHeight;
+
+ var scene;
+ var camera;
+ var renderer; 
+ var controls;
+ var renderer
+ var Element = function (id, x, y, z, ry){
+     
+     var div = document.createElement('div');
+     div.style.width = '48px';
+     div.style.height = '36px';
+     div.style.backgroundColor = '#000';
+     
+   var iframe = document.createElement( 'iframe' );
+				iframe.style.width = '1080px';
+				iframe.style.height = '720px';
+				iframe.style.border = '0px';
+				iframe.src = [ 'https://www.youtube.com/embed/', id, '?rel=0' ].join( '' );
+     
+     div.appendChild(iframe);
+         
+     var object = new THREE.CSS3DObject(div);
+     object.position.set(x,y,z);
+     object.rotation.y = ry;
+     
+     return object;
+}
+ 
+ 
+    
+ 
+     
+     var container = document.getElementById('container');
+     scene = new THREE.Scene( );
+     
+     camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 10000);
+     camera.position.set(0,0,100);
+     camera.lookAt(scene.position);
+     camera.getEffectiveFOV();
+     
+     renderer = new THREE.CSS3DRenderer();
+     renderer.setSize(width, height);
+     
+     container.appendChild( renderer.domElement);
+
+     var group = new THREE.Group();
+     group.add( new Element('oGnvUrSpkts',0 ,0,-240,0));
+     scene.add(group);
+     
+     controls = new THREE.OrbitControls( camera, renderer.domElement );
+     controls.enablePan = true;
+     controls.rotateSpeed = 0.3;
+     controls.minDistance = 0;
+     controls.maxDistance = 200;
+     controls.maxPolarAngle = Math.PI/2;
+     controls. enableKeys = true;
+     controls.keys = {
+	LEFT: 65, //left arrow
+	UP: 87, // up arrow
+	RIGHT: 68, // right arrow
+	BOTTOM: 83 // down arrow
+};
+    controls.keyPanSpeed = 15.0;
+    
+ //카메라기준 페닝으로 변경 
+    controls.screenSpacePanning = true;
+
+    window.addEventListener('resize', function(){
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    renderer.setSize(width, height);
+    camera.aspect = width / height;
+	camera.updateProjectionMatrix();
+    
+    var cube = new THREE.Mesh(new THREE.CubeGeometry(10,10,10),new THREE.MeshBasicMaterial({color:0xF1C6FA}));
+    
+    scene.add(cube);
+	
+});    
+     
+     var blocker = document.getElementById('blocker');
+     blocker.style.display = 'none';
+     
+     controls.addEventListener( 'start', function () {
+
+     blocker.style.display = '';
+
+} );
+     
+      controls.addEventListener( 'end', function () {
+
+      blocker.style.display = 'none';
+
+} );
+     
+     
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+//logic
+ var update = function( )
+{
+
+    
+};
+ var render = function( )
+{
+    
+     renderer.render( scene, camera );
+     rednerer2.redner(scne, camera);
+ 
+};
+
+
+// run loop (update, render, repeat)
+
+var loop = function( )
+{
+    
+ controls.update();
+ requestAnimationFrame( loop );
+ update();
+ render();
+ 
+};
+     loop();    
+
+    </script>
+    </body>
+</html>
+ 
