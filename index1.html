@@ -1,20 +1,27 @@
 <html>
 <head>
+<meta charset="utf-u">
 <title>Three.js Test</title>
 
-<style>
- body { margin: 0; }
- canvas {width: 100%; height: 100%; };
+<style type="text/css">
+body { margin: 0;}
+canvas {width: 100%; height: 100%; display: block;}
 </style>
 
 </head>
 
 <body>
-
+    
+<video id="video" loop crossOrigin="anonymous" playsinline style="display:none" controls autoplay muted="muted">
+<source src="video/test.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
+</video>   
+    
 <script src="js/three.js"></script>
 <script src="js/OrbitControls.js"></script>
-<script src="js/OBJLoader.js"></script>
-<script src="js/MTLLoader.js"></script>    
+<script src="js/FBXLoader.js"></script>
+<script src="js/inflate.min.js"></script>
+<script src="js/3Dink.js"></script>
+    
 <script>
 
 var width = window.innerWidth;
@@ -22,22 +29,105 @@ var height = window.innerHeight;
 
 var scene = new THREE.Scene( );
 // camera
-var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 15000);
+var camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 150000);
 
-camera.position.z = 3;
-
-var renderer = new THREE.WebGLRenderer();
+camera.position.y = 500;
+camera.position.x = -1500;
+var renderer = new THREE.WebGLRenderer({anitalise : true,preserveDrawingBuffer: true});
 renderer.setSize(width, height);
 //그림자 맵 생성
 renderer.shadowMap.enabled = true;
-    
+renderer.setPixelRatio( window.devicePixelRatio );
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild( renderer.domElement );
 
 //fps
     
 (function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
+scene.background = new THREE.TextureLoader().load('./images/Universe.jpg');
 
+//fbx
     
+var loader = new THREE.FBXLoader();
+    /*
+  function FBX(){
+    loader.load( './3Dfile/mustang/mustang.fbx', function ( object ) {
+        
+        
+
+        object.scale.set(0.0025, 0.0025, 0.0025);
+        object.rotation.set(0,0,0);
+        object.position.set(0,0,0);
+        
+        
+        object.traverse( function(child) {
+        if (child.isMesh) {
+      
+        child.castShadow = true;
+      
+  }
+  });  
+  
+        scene.add(object); 
+       
+    },
+	// called when loading is in progresses
+	function ( xhr ) {
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        
+	},
+	// called when loading has errors
+	function ( error ) {
+    
+		console.log( 'FBXLoader failed' );
+        alert('실패');
+	});
+}
+    
+FBX();
+*/
+var mesh1; 
+    
+//Jupiter
+function FBX1(){
+    loader.load( './3Dfile/jupiter/jupiter.fbx', function ( object ) {
+        
+        
+        mesh1 = object;
+        mesh1.scale.set(0.25, 0.25, 0.25);
+        mesh1.rotation.set(-0.4,0,0);
+        mesh1.position.set(0,0,0);
+    
+        
+        mesh1.traverse( function(child) {
+        if (child.isMesh) {
+      
+        child.castShadow = true;
+      
+  }
+  });  
+  
+        scene.add(mesh1); 
+       
+    },
+	// called when loading is in progresses
+	function ( xhr ) {
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        
+        
+	},
+	// called when loading has errors
+	function ( error ) {
+    
+		console.log( 'FBXLoader failed' );
+        alert('실패');
+	});
+}
+    
+FBX1();
+    
+    
+/*    
 //OBJLoader    
 var loader = new THREE.OBJLoader();    
 function loadOBJLoader(materials)
@@ -54,7 +144,7 @@ loader.setMaterials(materials);
         object.position.x =0;
         object.position.y =0;
         object.position.z =0;
-        object.scale.set(1,1,1);
+        object.scale.set(0.25,0.25,0.25);
          object.traverse( function(child) {
         if (child.isMesh) {
       
@@ -111,21 +201,25 @@ function loadMTLLoader() {
     
 
 loadMTLLoader();
-
+*/
 //ground for ObjModel;
     
-var groundGeometry = new THREE.CubeGeometry( 20, 0.5, 20 );
+var groundGeometry = new THREE.CubeGeometry( 5, 0.5, 5 );
 var groudnMaterial = new THREE.MeshStandardMaterial({map: new THREE.TextureLoader().load('images/ground.jpg'),side: THREE.DoubleSide});
 var ground = new THREE.Mesh(groundGeometry,groudnMaterial);
 ground.receiveShadow = true;
-ground.catShadow = true;    
 scene.add(ground);
 ground.position.y = -0.3;
     
 //direct light
 
-var directlight = new THREE.SpotLight(0xFFFFFF,1.0);
-directlight.position.set(0,15,-40);
+var directlight = new THREE.SpotLight(0xFFFFFF,0.5);
+directlight.position.set(0,25,-40);
+
+directlight.angle = 1;
+directlight.penumbra = 0.2;
+directlight.decay = 1;
+directlight.distance = 100;    
 directlight.shadow.mapSize = new THREE.Vector2(1024,1024);
 scene.add(directlight);
 directlight.castShadow = true;
@@ -139,7 +233,7 @@ var locat = new THREE.Mesh( locatG, locatM );
 scene.add( locat );
     
 locat.position.x = 0;
-locat.position.y = 15;
+locat.position.y = 25;
 locat.position.z = -40;
 //window resize
 window.addEventListener('resize', function()
@@ -162,10 +256,26 @@ var grideHelper = new THREE.GridHelper( 200,10 );
 scene.add(grideHelper);
 
 //OrbitControls
-controls = new THREE.OrbitControls( camera, renderer.domElement );
-
+ var controls = new THREE.OrbitControls( camera, renderer.domElement );
+ controls.enablePan = true;
+ controls.rotateSpeed = 0.7;
+ controls.zoomSpeed = 2;
+ controls.minDistance = 0;
+ controls.maxDistance = Infinity;
+ controls.maxPolarAngle = Math.PI;
+ controls. enableKeys = true;
+ controls.keys = {
+	LEFT: 65, //left arrow
+	UP: 87, // up arrow
+	RIGHT: 68, // right arrow
+	BOTTOM: 83 // down arrow
+};
+controls.keyPanSpeed = 30.0;
+    
+ //카메라기준 페닝으로 변경 
+controls.screenSpacePanning = true;
 // create the shape
-var geometry = new THREE.CubeGeometry( 2, 2, 2 ); 
+var geometry = new THREE.CubeGeometry( 1, 1, 1 ); 
 
 //meterial colour image texture 정의
 var cubeMaterials = 
@@ -184,7 +294,7 @@ cube.position.x = 10;
 cube.position.y = 4;
 cube.position.z = 20;    
 cube.castShadow = true;
-cube.receiveShadow = true;
+
 //new box example for light
     
 var floorGeometry = new THREE.CubeGeometry(10, 1, 10);
@@ -223,25 +333,25 @@ leftcube.position.z = 20;
     
 
 //skybox
-    
-var skyboxgeometry = new THREE.CubeGeometry(500, 500, 500);
+    /*
+var skyboxgeometry = new THREE.CubeGeometry(30, 30, 30);
 var skyboxMaterials =
     [
-    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/nightsw/posx.jpg"), side: THREE.DoubleSide}),
-    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/nightsw/negx.jpg"), side: THREE.DoubleSide}),
-    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/nightsw/posy.jpg"), side: THREE.DoubleSide}), 
-    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/nightsw/negy.jpg"), side: THREE.DoubleSide}),
-    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/nightsw/posz.jpg"), side: THREE.DoubleSide}),
-    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/nightsw/negz.jpg"), side: THREE.DoubleSide})
+    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/nightsw/posx.jpg"), side: THREE.BackSide}),
+    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/nightsw/negx.jpg"), side: THREE.BackSide}),
+    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/nightsw/posy.jpg"), side: THREE.BackSide}), 
+    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/nightsw/negy.jpg"), side: THREE.BackSide}),
+    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/nightsw/posz.jpg"), side: THREE.BackSide}),
+    new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/nightsw/negz.jpg"), side: THREE.BackSide})
     ];
  
 var skybox = new THREE.Mesh( skyboxgeometry, skyboxMaterials );
 
 scene.add(skybox);
-
+*/
 //지구 만들기
-var Earthgeometry = new THREE.SphereGeometry(1000, 32, 32);
-var Earthmaterial = new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/Earth.jpg"),side: THREE.FrontSide});
+var Earthgeometry = new THREE.SphereGeometry(100, 64, 64);
+var Earthmaterial = new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("images/Earth.jpg"),side: THREE.FrontSide});
 var earthmesh = new THREE.Mesh(Earthgeometry, Earthmaterial); 
 earthmesh.position.x = 0;
 earthmesh.position.y = 0;
@@ -250,51 +360,60 @@ scene.add(earthmesh);
     
   
 // 사막 스카이박스
-var skygeometry = new THREE.SphereGeometry(1000, 32, 32);
-var skymaterial = new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/sky.jpg"), side: THREE.BackSide});
+var skygeometry = new THREE.SphereGeometry(25, 64, 64);
+var skymaterial = new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("images/sky.jpg"), side: THREE.BackSide});
 var skymesh = new THREE.Mesh(skygeometry, skymaterial); 
 scene.add(skymesh);
-
+    
+var video = document.getElementById( 'video' );
+video.play();
+var texture = new THREE.VideoTexture( video );
+/*    
 // 우주 스카이박스
-var Unigeometry = new THREE.SphereGeometry(10000, 32, 32);
-var Unimaterial = new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("skybox/Universe.jpg"), side: THREE.DoubleSide});
+var Unigeometry = new THREE.SphereGeometry(2000, 32, 32);
+var Unimaterial = new THREE.MeshBasicMaterial({map: texture, side: THREE.DoubleSide});
 var Unimesh = new THREE.Mesh(Unigeometry, Unimaterial); 
 scene.add(Unimesh);    
-
-
+*/
+    
 //light
-var ambientLight = new THREE.AmbientLight( 0x000000, 0.3);        
+var ambientLight = new THREE.AmbientLight( 0x808080, 2);        
 scene.add(ambientLight);
 
 //PointLight
-    
-
+DDDINK.addURL(earthmesh, "http://www.bing.co.kr/");
+DDDINK.readRendererObj( renderer, scene, camera );
+DDDINK.domEvent.addFnc();
 
 //logic 
 var update = function( )
 {  
- if(locat.position.z >= -40 && locat.position.z < 40)
-      {
-          locat.position.z += 0.05;
-      }
-    else if(locat.position.z = 40)
-      {
-            locat.position.z = -40;
-      }
     
-  if(directlight.position.z >= -40 && directlight.position.z < 40)
-      {
-          directlight.position.z += 0.05;
-      }
-    else if(directlight.position.z = 40)
-      {
-            directlight.position.z = -40;
-      }
+ var time = Date.now() * 0.00025;
+ var skytime = Date.now() * 0.0005;
+    
+ directlight.position.z = Math.cos( time ) * 25 + 10 ;
+ locat.position.z = Math.cos( time ) * 25 + 10;
     cube.rotation.x += 0.02;
     cube.rotation.y += 0.01;
     earthmesh.rotation.y -= 0.001;
     earthmesh.rotation.x -= 0.0005;
+    skymesh.rotation.y -= 0.01;
+    skymesh.rotation.x -= 0.005;
+    earthmesh.position.z = Math.cos( time ) * 750;
+    earthmesh.position.x = Math.sin( time ) * 750;
+    earthmesh.position.y = Math.cos(time)* 700;
+    skymesh.position.z = Math.cos(skytime) * 500 + Math.cos( time ) * 750;
+    skymesh.position.x = Math.sin(skytime) * 500 + Math.sin(time) * 750;
+    skymesh.position.y = Math.cos(skytime) * 250 + Math.cos(time) * 700;
+    mesh1.rotation.y -= 0.001;
     
+    cube.position.x = camera.position.x - 5;
+    cube.position.y = camera .position.y;
+    cube.position.z = camera.position.z;
+    
+    
+ 
 
 };
 var render = function( )
@@ -312,6 +431,7 @@ var loop = function( )
  requestAnimationFrame( loop );
  update();
  render();
+ controls.update();
  
 };
 
