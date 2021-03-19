@@ -1,0 +1,275 @@
+<html>
+ <head>
+    <meta charset="utf-8">
+    
+    <title>인수인계 튜토리얼</title>
+
+    <!-- canvas 크기는 안잡아줘도 됨 -->
+    <style type="text/css">
+    
+    body { margin: 0; }
+    canvas {width: 100%;  height: 100%; display: block; z-index:1;}
+    
+    </style>
+ </head>
+<body>
+    
+    <!-- WebGL 구현을 위한 three.js 라이브러리 불러오기 -->
+    <script src="js/three.js"></script>
+    
+    <!-- canvas 안에서 카메라 움직임 구현을 위한 orbitControls script 불러오기  -->
+    <script src="js/OrbitControls.js"></script>
+
+    <!--FBX파일 로드를 위한 sciprt 불러오기 -->
+    <script src="js/FBXLoader.js"></script>
+    <script src="js/inflate.min.js"></script>
+
+    <!--3D Object와 raycasting 응용한 라이브러리 -->
+    <script src="js/3Dink.js"></script>
+    <!--카메라 이동에 관한 라이브러리-->
+    <script src="js/tweenjs.js"></script>
+    <script type= text/javascript>
+
+    //필요 변수 선언
+    var controls;
+    var mesh;
+    var spheremesh;
+    var FBXobject;
+    var mesh1;
+    //three.js 시용을 위한 scene 선언
+    var scene = new THREE.Scene();
+    //canvas 내에 카메라 호출
+    var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 10000);
+    //camera (fov(화각) , 화면 상 카메라의 위치, 최소 시야거리 , 최대시야거리)
+    
+    //FBXloader 선언
+    var FBXloader = new THREE.FBXLoader();
+    
+    //camera position 초기화(필수!)
+    camera.position.z = 50; 
+    camera.position.y = 10;
+    camera.lookAt(new THREE.Vector3(0,0,0));
+
+    //WebGL의 가장 기본인 WebGLRenderer(3D Canvas) 호출
+    var renderer = new THREE.WebGLRenderer({antialise : true, preserveDrawingBuffer: true});
+
+    //gama 입출력으로 불필요시 배제가능
+
+    renderer.gammaInput = false;
+    renderer.gammaOutput = false;  
+    
+    //Canvas 크기
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    
+    // 그림자를 구현하기 위한 첫번째 요소
+    renderer.shadowMap.enabled = true;
+    renderer.setPixelRatio( window.devicePixelRatio);
+    //좀더 자연스러운 그림자 연출
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    document.body.appendChild( renderer.domElement);
+    
+ 
+    //WebGL의 가장 기본 요소 카메라 컨트롤
+
+    function control(){    
+    controls= new THREE.OrbitControls( camera, renderer.domElement );
+    
+
+    //카메라 기준(시점 기준) 페닝으로 변경 
+    controls.screenSpacePanning = true;
+}
+
+
+    // 초기 구성품에 대한 함수 굳이 초기화 함수 사용 안해도됨
+    // 당연히 변수 선언은 전역선언으로 하는게 좋다.
+
+function init() {
+    
+
+    // AmbientLight란 전체 canvas 영역 전체 빛을 생성함 scene 밝기라고 생각하면 된다.
+
+            var Ambientlight = new THREE.AmbientLight(0x808080,0.7);
+            scene.add(Ambientlight);  
+
+    // 조명 생성 (spot light)
+
+            var spotlight = new THREE.SpotLight(0xffffff, 1.3 ,150);
+                                               //색상,near,far
+            spotlight.position.set(50,100,30);
+            spotlight.castShadow = true;
+           
+            scene.add(spotlight);
+            
+            var spotLightHelper = new THREE.SpotLightHelper(spotlight);
+            
+            scene.add(spotLightHelper);      
+
+    // 간단한 정육면체 만들기
+            mesh = new THREE.Mesh(new THREE.CubeGeometry(3,3,3), new THREE.MeshStandardMaterial({color : 0xaffafa, side : THREE.DoubleSide, wireframe : false }));
+            mesh.position.y = 20;
+            mesh.castShadow = true;
+            scene.add(mesh);
+
+    // 정육면체 material 구성 설명 index 순서대로 +x, -x, +y, -y, +z, -z
+           var mesh1Geometry = new THREE.CubeGeometry(10,10,10);
+           
+           var mesh1material = [
+               new THREE.MeshStandardMaterial({color : 0xCD0000 , side : THREE.DoubleSide}), //+x
+               new THREE.MeshStandardMaterial({color : 0x8B4513 , side : THREE.FrontSide}), //-x
+               new THREE.MeshStandardMaterial({color : 0x942894 , side : THREE.BackSide}), //+y
+               new THREE.MeshStandardMaterial({color : 0x00A5FF , side : THREE.DoubleSide}), //-y
+               new THREE.MeshStandardMaterial({color : 0x52E252 , side : THREE.DoubleSide}),
+               new THREE.MeshStandardMaterial({color : 0x808080 , side : THREE.DoubleSide}) //+z
+            ];
+
+           mesh1 = new THREE.Mesh(mesh1Geometry, mesh1material);
+           mesh1.position.y = 20; 
+           mesh1.castShadow = true; 
+           mesh1.receiveShadow = true; 
+           scene.add(mesh1);
+            
+            
+    // scene에 대한 Background 색 및 동영상, 이미지 ,hdr ,exr 까지 넣을 수 있다. 
+            scene.background = new THREE.Color(0x808080);
+    
+    // 바닥 만들기
+            var planeGeometry = new THREE.PlaneBufferGeometry(200,300);
+            var planematerial = new THREE.MeshStandardMaterial({map : new THREE.TextureLoader().load('images/page2test.jpg'), side: THREE.DoubleSide});
+            var plane = new THREE.Mesh(planeGeometry, planematerial);
+            plane.rotation.x = 1.571;
+            plane.receiveShadow = true;
+            scene.add(plane);
+
+
+    //Gridhelper  (처음 3차원 프로그래밍이 어려울때 좌표축 도우미)
+
+            var axes = new THREE.AxesHelper(200);
+                                         // 길이
+            scene.add(axes);
+
+            var grideHelper = new THREE.GridHelper(200, 20);
+                            // 양수좌표+음수좌표 길이,나눈 칸수         
+            scene.add(grideHelper);
+
+
+  
+     //FBX 파일 불러오기
+     function FBX()
+     {
+       FBXloader.load('./3Dfile/FBX/stanford-bunny.fbx', function(object){
+
+            FBXobject = object;
+            FBXobject.scale.set(0.0001,0.0001,0.0001);
+            FBXobject.rotation.set(0,0,0);
+            FBXobject.position.set(20,2,0);
+
+            //
+           FBXobject.traverse( function(child){
+               if (child.isMesh){
+
+                   child.castShadow = true;
+                   child.receiveShadow = true;
+
+               }
+            });
+            scene.add(FBXobject);
+           
+  
+       },
+       // loaded 진행 상황
+       function (xhr)
+       {
+          console.log((xhr.loaded/xhr.total*100) + '% loaded');
+       },
+       
+       function (error)
+       {
+         console.log('FBXLoader failed');
+         alert('파일 로드 실패');          
+       }
+     );
+    }
+     FBX();      
+
+   //구체 형태의 파노라마 만들기
+   spheremesh = new THREE.Mesh(new THREE.SphereGeometry(1000,64,64), new THREE.MeshBasicMaterial({map : new THREE.TextureLoader().load('images/sky.jpg'), side : THREE.DoubleSide}));
+     
+   scene.add(spheremesh);
+    
+  }
+
+  init();
+  
+  document.addEventListener('click', ondbclick, false);
+   
+   function ondbclick(evenet){
+       
+       var x =  (event.clientX / window.innerWidth) * 2 - 1; 
+       var y = -(event.clientY / window.innerHeight) * 2 + 1;
+       var dir = new THREE.Vector3(x,y,-1);
+       dir.unproject(camera);
+
+     //raycasting 구현
+      
+       var raycast = new THREE.Raycaster(camera.position, dir.sub(camera.position).normalize());
+       var intersect = raycast.intersectObject(mesh);
+       
+       if( intersect.length > 0 )
+       {
+           console.log(intersect.length);
+           alert('클릭');
+       }
+   }
+     
+    DDDINK.addURL(mesh1,"http://wipco.co.kr");
+    DDDINK.readRendererObj( renderer, scene, camera );
+    DDDINK.domEvent.addFnc();
+
+
+
+
+    //화면크기 변화에 따른 canvas크기 변화 함수 
+    window.addEventListener('resize', function()
+    {   
+    
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    renderer.setSize(width, height);
+    camera.aspect = width / height;
+   camera.updateProjectionMatrix();
+
+    });
+     
+    control();
+
+    // render 무한 루프를 위한 함수
+    function render() {
+        renderer.render(scene,camera);
+    }
+
+    function animation()
+
+    {   
+
+        //시간의 흐름
+        var time = Date.now()*0.001;
+        mesh.rotation.y += 0.02;
+        mesh.position.z = Math.cos(time)*10 - 5;
+        spheremesh.rotation.y += 0.002;
+        
+    }
+
+    // 각종 함수 및 기능에 대한 loop
+    function loop() 
+    {
+        animation();
+        render();
+        requestAnimationFrame(loop);
+    }
+
+    loop();
+
+</script>
+</body>
+</html>
