@@ -5,4 +5,6 @@
 * Visual Studio Code
 
 # 참조 라이브리
-Three.JS, 3DINK.JS, TWEEN.JS
+* ThreeJS
+* 3DinkJS
+* TweenJS
