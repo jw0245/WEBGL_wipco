@@ -4,7 +4,7 @@
 # 개발환경
 * Visual Studio Code
 
-# 참조 라이브리
+# 참조 라이브러리
 * ThreeJS
 * 3DinkJS
 * TweenJS
